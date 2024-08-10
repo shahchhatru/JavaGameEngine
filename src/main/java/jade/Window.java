@@ -3,6 +3,7 @@ import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
+import util.Time;
 
 import java.nio.*;
 
@@ -17,8 +18,11 @@ public class Window {
     private String title;
     private long glfwWindow;
     private static Window window=null;
-    private float r, g, b, a;
+    public float r, g, b, a;
     private boolean fadeToBlack=false;
+
+
+    private static Scene currentScene=null;
 
 
     private Window(){
@@ -55,6 +59,23 @@ public class Window {
         glfwTerminate();
         glfwSetErrorCallback(null).free();
 
+    }
+
+    public static void changeScene(int newScene){
+        switch (newScene){
+            case 0:
+                currentScene=new LevelEditorScene();
+                //currentScene.init()
+                break;
+            case 1:
+                currentScene = new LevelScene();
+                break;
+            default:
+                assert false:"Unknown Scene"+ newScene+" ";
+                break;
+
+
+        }
     }
 
     private void init() {
@@ -116,41 +137,43 @@ public class Window {
 
         // Make the window visible
         glfwShowWindow(glfwWindow);
-    }
-
-    private void loop() {
         // This line is critical for LWJGL's interoperation with GLFW's
         // OpenGL context, or any context that is managed externally.
         // LWJGL detects the context that is current in the current thread,
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+        Window.changeScene(0);
+    }
 
+    private void loop() {
+
+
+        float beginTime = Time.getTime();
+        float endTime;
+        float dt = -1.0f;
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while ( !glfwWindowShouldClose(glfwWindow) ) {
 
+
             System.out.println("hello loop ");
-            // Set the clear color
-            glClearColor(this.r, this.g, this.b, this.a);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-            if(fadeToBlack){
-                this.r=Math.max(r-0.01f,0.01f);
-                this.g=Math.max(g-0.01f,0.01f);
-                this.b=Math.max(b-0.01f,0.01f);
-            }
-
-            if(KeyListener.isKeyPressed(GLFW_KEY_A)){
-                System.out.println("Space key is pressed");
-                fadeToBlack=true;
-
-            }
-            glfwSwapBuffers(glfwWindow); // swap the color buffers
-
             // Poll for window events. The key callback above will only be
             // invoked during this call.
             glfwPollEvents();
+            // Set the clear color
+            glClearColor(this.r, this.g, this.b, this.a);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+            if(dt>=0){
+                currentScene.update(dt);
+            }
+
+            glfwSwapBuffers(glfwWindow); // swap the color buffers
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime=endTime;
+
         }
     }
 }
