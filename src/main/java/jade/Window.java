@@ -47,6 +47,7 @@ public class Window {
         // Terminate GLFW and free the error callback
         glfwTerminate();
         glfwSetErrorCallback(null).free();
+
     }
 
     private void init() {
@@ -94,6 +95,9 @@ public class Window {
             );
         } // the stack frame is popped automatically
 
+        glfwSetCursorPosCallback(glfwWindow,MouseListener::mousePosCallback);
+        glfwSetMouseButtonCallback(glfwWindow,MouseListener::mouseButtonCallback);
+        glfwSetScrollCallback(glfwWindow,MouseListener::mouseScrollCallback);
         // Make the OpenGL context current
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync
